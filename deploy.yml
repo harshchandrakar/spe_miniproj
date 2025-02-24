@@ -1,0 +1,32 @@
+---
+- name: Deploy Scientific Calculator
+  hosts: localhost
+  become: false
+  tasks:
+    - name: Pull the latest Docker image
+      docker_image:
+        name: "mt2024054/calculator"
+        source: pull
+      register: docker_pull_result
+
+    - name: Display Docker Pull Result
+      debug:
+        var: docker_pull_result
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+
+    - name: Stop running container (if exists)
+      shell: |
+        docker ps -q --filter "name=calculator" | grep -q . && docker stop calculator || true
+      ignore_errors: yes
+
+    - name: Remove existing container (if exists)
+      shell: |
+        docker ps -aq --filter "name=calculator" | grep -q . && docker rm calculator || true
+      ignore_errors: yes
+
+    - name: Run the updated container
+      shell: docker run -it -d --name calculator mt2024054/calculator

@@ -1,0 +1,80 @@
+pipeline {
+    agent any
+    triggers { 
+        githubPush() 
+    }
+    environment {
+        DOCKER_IMAGE_NAME = 'calculator'
+        GITHUB_REPO_URL = 'https://github.com/harshchandrakar/MiniProject.git'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    git branch: 'main', url: "${GITHUB_REPO_URL}"
+                }
+            }
+        }
+
+        stage('Build Test Container') {
+            steps {
+                script {
+                    sh '''
+                    docker build -t calculator-test .
+                    '''
+                }
+            }
+        }
+
+        stage('Run Tests Inside Container') {
+            steps {
+                script {
+                    sh '''
+                    docker run --name calculator-test-container calculator-test python -m unittest discover -s . -p "test_scientific_calculator.py" || (docker logs calculator-test-container && exit 1)
+                    '''
+                }
+            }
+        }
+
+        stage('Clean Up Test Container') {
+            steps {
+                script {
+                    sh 'docker rm -f calculator-test-container || true'
+                }
+            }
+        }
+
+        stage('Build and Push Production Image') {
+            steps {
+                script {
+                    docker.build("${DOCKER_IMAGE_NAME}", '.')
+                    docker.withRegistry('', 'DockerHubCred') {
+                        sh 'docker tag calculator mt2024054/calculator:latest'
+                        sh 'docker push mt2024054/calculator'
+                    }
+                }
+            }
+        }
+
+        stage('Deploy with Ansible') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'bd971806-ba26-4df8-afad-00f96eb69b98', 
+                                                   keyFileVariable: 'SSH_KEY_FILE', 
+                                                   usernameVariable: 'SSH_USER')]) {
+                    script {
+                        writeFile file: 'hosts', text: """
+                        localhost ansible_user=${SSH_USER} ansible_ssh_private_key_file=${SSH_KEY_FILE}
+                        ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+                        """
+                        
+                        ansiblePlaybook(
+                            playbook: 'deploy.yml',
+                            inventory: 'inventory'
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

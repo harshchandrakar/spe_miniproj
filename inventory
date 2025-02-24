@@ -1,0 +1,1 @@
+localhost ansible_user=parallels ansible_ssh_common_args='-o StrictHostKeyChecking=no'
