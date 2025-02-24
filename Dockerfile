@@ -16,4 +16,4 @@ RUN python -m unittest discover -s . -p "test.py"
 RUN chmod +x /app/scientific_calculator.py
 
 # Set the default command to run the calculator
-CMD ["python", "/app/scientific_calculator.py"]
+CMD ["python3", "/app/scientific_calculator.py"]

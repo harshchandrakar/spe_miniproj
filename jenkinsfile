@@ -5,7 +5,7 @@ pipeline {
     }
     environment {
         DOCKER_IMAGE_NAME = 'calculator'
-        GITHUB_REPO_URL = 'https://github.com/harshchandrakar/MiniProject.git'
+        GITHUB_REPO_URL = 'https://github.com/harshchandrakar/spe_miniproj.git'
     }
 
     stages {
@@ -31,7 +31,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    docker run --name calculator-test-container calculator-test python -m unittest discover -s . -p "test_scientific_calculator.py" || (docker logs calculator-test-container && exit 1)
+                    docker run --name calculator-test-container calculator-test python -m unittest discover -s . -p "test.py" || (docker logs calculator-test-container && exit 1)
                     '''
                 }
             }
