@@ -10,7 +10,7 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Run tests during the build process
-RUN python -m unittest discover -s . -p "test.py"
+RUN python -m pytest -v calculator_test.py
 
 # Ensure the main script is executable
 RUN chmod +x /app/scientific_calculator.py

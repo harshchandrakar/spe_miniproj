@@ -31,7 +31,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    docker run --name calculator-test-container calculator-test python -m unittest discover -s . -p "test.py" || (docker logs calculator-test-container && exit 1)
+                    docker run --name calculator-test-container calculator-test python3 -m pytest -v "calculator_test.py" || (docker logs calculator-test-container && exit 1)
                     '''
                 }
             }
